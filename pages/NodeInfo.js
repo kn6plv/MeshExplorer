@@ -7,6 +7,7 @@ class NodeInfo extends Page {
 
   constructor(root) {
     super(root);
+    this.currentName = null;
 
     this.nodesUpdate = this.nodesUpdate.bind(this);
   }
@@ -22,31 +23,47 @@ class NodeInfo extends Page {
   }
 
   async tabSelect(arg) {
-    this.html('node-properties', this.template.NodeProperties({ json: { node: arg } }));
+    if (arg !== this.currentName) {
+      this.currentName = arg;
+      this._setupProps();
+      this._updateProps().catch(() => {});
+    }
+  }
+
+  nodesUpdate() {
+    this._updateProps();
+  }
+
+  _setupProps() {
+    this.html('node-properties', this.template.NodeProperties({ node: { node: this.currentName } }));
     this.html('node-map-control', this.template.NodeMapControl());
     this.html('node-map-radios', this.template.NodeMapRadios());
-    const myId = ++id;
-    const node = await Network.getNodeByName(arg);
-    if (myId !== id || !node) {
+  }
+
+  async _updateProps() {
+    const name = this.currentName;
+    const node = await Network.getNodeByName(name);
+    if (name !== this.currentName || !node) {
       return;
     }
-    this.html('node-properties', this.template.NodeProperties({ json: node }));
-    this.html('node-map-control', this.template.NodeMapControl({ json: node }));
+    const dtd = Network.getDTDLinks(node);
+    const rf = Network.getRFLinks(node);
+    this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf }));
+    this.html('node-map-control', this.template.NodeMapControl({ node: node }));
     this.html('node-map-radios', this.template.NodeMapRadios({ home: node }));
     const radios = [];
-    await Promise.all(Object.keys(node.link_info || {}).map(async ip => {
-      const rnode = await Network.getNodeByIP(ip);
-      if (myId !== id) {
+    await Promise.all(rf.map(async link => {
+      const rnode = await Network.getNodeByName(link.hostname);
+      if (name !== this.currentName) {
         return;
       }
       if (rnode) {
         radios.push(rnode);
         this.html('node-map-radios', this.template.NodeMapRadios({ home: node, radios: radios }));
+        link.rlink = Object.values(rnode.link_info).find(link => link.name === name && link.linkType === 'RF');
+        this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf }));
       }
     }));
-  }
-
-  nodesUpdate() {
   }
 }
 

@@ -142,3 +142,16 @@ body {
 .node-peer-header td {
   padding-top: 16px;
 }
+.node-snr {
+  font-size: 8px;
+  line-height: 8px;
+}
+.local-snr {
+  padding-right: 8px;
+}
+.remote-snr {
+
+}
+.null-snr {
+  color: var(--disabled-text-color);
+}

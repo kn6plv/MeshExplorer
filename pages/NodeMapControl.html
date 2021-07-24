@@ -4,12 +4,12 @@
       layer.remove();
     }
   });
-  {{#if (and json.lat json.lon)}}
-  const coord = [ {{json.lat}}, {{json.lon}} ];
+  {{#if (and node.lat node.lon)}}
+  const coord = [ {{node.lat}}, {{node.lon}} ];
   const home = L.marker(coord, {
     icon: homeIcon,
     zIndexOffset: 1000,
-    title: "{{json.node}}"
+    title: "{{node.node}}"
   });
   nodeMap.addLayer(home);
   {{/if}}

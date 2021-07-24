@@ -11,7 +11,6 @@ class AREDNNetwork {
     this.hostname = 'localnode';
     this.links = {};
     this.names = {};
-    this.ips = {};
     this.nodes = {};
     this.radios = {};
     this.ages = {};
@@ -28,13 +27,11 @@ class AREDNNetwork {
     const req = await fetch('http://localnode.local.mesh/cgi-bin/sysinfo.json?link_info=1&hosts=1');
     const json = await req.json();
 
-    this.links = json.link_info;
+    this.json = json;
     this.hostname = json.node;
     this.names = {};
-    this.ips = {};
     json.hosts.forEach(host => {
       this.names[host.name] = host;
-      this.ips[host.ip] = host;
     });
     this.nodes[this.hostname] = json;
     this.ages[this.hostname] = Date.now();
@@ -70,7 +67,7 @@ class AREDNNetwork {
           radio: Radios.lookup(json.node_details.model)
         };
         for (let ip in json.link_info) {
-          json.link_info[ip].name = this._canonicalHostname(json.link_info[ip].hostname);
+          json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
         }
         if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
           this.nodes[name] = json;
@@ -110,7 +107,7 @@ class AREDNNetwork {
         if (link.linkType !== 'RF') {
           continue;
         }
-        const radioName = this._canonicalHostname(link.hostname);
+        const radioName = this.canonicalHostname(link.hostname);
         const entry = { name: radioName, ip: ip };
         if (!this.radios[radioName] || JSON.stringify(this.radios[radioName]) != JSON.stringify(entry)) {
           this.radios[radioName] = entry;
@@ -122,18 +119,11 @@ class AREDNNetwork {
   }
 
   getTypeLinks(type) {
-    const links = [];
-    for (let ip in this.links) {
-      const link = this.links[ip];
-      if (link.linkType == type) {
-        links.push(Object.assign({ ip: ip }, link));
-      }
-    }
-    return links;
+    return this.getNodeTypeLinks(this.json, type);
   }
 
   getLocalNames() {
-    return ([ this.hostname ].concat(this.getTypeLinks('DTD').map(link => this._canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
+    return ([ this.hostname ].concat(this.getTypeLinks('DTD').map(link => this.canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
   }
 
   getRFNames() {
@@ -141,14 +131,34 @@ class AREDNNetwork {
   }
 
   getTUNNames() {
-    return this.getTypeLinks('TUN').map(link => this._canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
+    return this.getTypeLinks('TUN').map(link => this.canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
   }
 
   getAllNames() {
     return Object.keys(this.names).sort((a,b) => a.localeCompare(b));
   }
 
+  getNodeTypeLinks(node, type) {
+    const links = [];
+    for (let ip in node.link_info) {
+      const link = node.link_info[ip];
+      if (link.linkType == type) {
+        links.push(Object.assign({ ip: ip }, link));
+      }
+    }
+    return links;
+  }
+
+  getDTDLinks(node) {
+    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.hostname.localeCompare(b.hostname));
+  }
+
+  getRFLinks(node) {
+    return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.hostname.localeCompare(b.hostname));
+  }
+
   async getNodeByName(name) {
+    name = this.canonicalHostname(name);
     if (!this.nodes[name]) {
       await this._populateNodes([ name ]);
     }
@@ -168,15 +178,7 @@ class AREDNNetwork {
     return this.nodes[name];
   }
 
-  async getNodeByIP(ip, updateEvent) {
-    const name = this.ips[ip];
-    if (!name) {
-      return null;
-    }
-    return await this.getNodeByName(name.name);
-  }
-
-  _canonicalHostname(name) {
+  canonicalHostname(name) {
     return name.replace(/\.local\.mesh$/i, '');
   }
 

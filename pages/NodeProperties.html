@@ -1,48 +1,48 @@
 <table>
   <tbody>
-    <tr class="name"><td colspan="2">{{json.node}}</td></tr>
-    {{#if json.node_details.description}}
-    <tr class="description"><td colspan="2">{{json.node_details.description}}</td></tr>
+    <tr class="name"><td colspan="2">{{node.node}}</td></tr>
+    {{#if node.node_details.description}}
+    <tr class="description"><td colspan="2">{{node.node_details.description}}</td></tr>
     {{/if}}
-    {{#if (and json.lon json.lat)}}
-    <tr class="location"><td>Location</td><td>{{json.lon}}, {{json.lat}}</td></tr>
+    {{#if (and node.lon node.lat)}}
+    <tr class="location"><td>Location</td><td>{{node.lon}}, {{node.lat}}</td></tr>
     {{/if}}
-    {{#if json.grid_square}}
-    <tr><td>Grid Square</td><td>{{json.grid_square}}</td></tr>
+    {{#if node.grid_square}}
+    <tr><td>Grid Square</td><td>{{node.grid_square}}</td></tr>
     {{/if}}
-    {{#if json.extra.address}}
-    <tr><td>Address</td><td>{{json.extra.address}}</td></tr>
+    {{#if node.extra.address}}
+    <tr><td>Address</td><td>{{node.extra.address}}</td></tr>
     {{/if}}
-    {{#if json.meshrf}}
-    {{#if (eq json.meshrf.status "on")}}
+    {{#if node.meshrf}}
+    {{#if (eq node.meshrf.status "on")}}
     <tr><td>RF Status</td><td>On</td></tr>
-    <tr><td>SSID</td><td>{{json.meshrf.ssid}}</td></tr>
-    <tr><td>RF Channel</td><td>{{json.meshrf.channel}}</td></tr>
-    <tr><td>RF Freq</td><td>{{json.meshrf.freq}}</td></tr>
-    <tr><td>Bandwidth</td><td>{{json.meshrf.chanbw}} MHz</td></tr>
-    {{#if json.extra.radio.antennaGain}}
-    <tr><td>Antenna Gain</td><td>{{json.extra.radio.antennaGain}} dBi</td></tr>
+    <tr><td>SSID</td><td>{{node.meshrf.ssid}}</td></tr>
+    <tr><td>RF Channel</td><td>{{node.meshrf.channel}}</td></tr>
+    <tr><td>RF Freq</td><td>{{node.meshrf.freq}}</td></tr>
+    <tr><td>Bandwidth</td><td>{{node.meshrf.chanbw}} MHz</td></tr>
+    {{#if node.extra.radio.antennaGain}}
+    <tr><td>Antenna Gain</td><td>{{node.extra.radio.antennaGain}} dBi</td></tr>
     {{/if}}
-    {{#if json.extra.radio.antennaBeam}}
-    <tr><td>Antenna Beam</td><td>{{json.extra.radio.antennaBeam}}&deg;</td></tr>
+    {{#if node.extra.radio.antennaBeam}}
+    <tr><td>Antenna Beam</td><td>{{node.extra.radio.antennaBeam}}&deg;</td></tr>
     {{/if}}
-    {{#if json.extra.radio.txPower}}
-    <tr><td>Max Tx Power</td><td>{{json.extra.radio.txPower}} dBm</td></tr>
+    {{#if node.extra.radio.txPower}}
+    <tr><td>Max Tx Power</td><td>{{node.extra.radio.txPower}} dBm</td></tr>
     {{/if}}
     {{else}}
     <tr><td>RF Status</td><td>Off</td></tr>
     {{/if}}
     {{/if}}
-    {{#if json.interfaces}}
-    <tr><td>MAC</td><td>{{json.interfaces.0.mac}}</td></tr>
+    {{#if node.interfaces}}
+    <tr><td>MAC</td><td>{{node.interfaces.0.mac}}</td></tr>
     {{/if}}
-    {{#if json.node_details.model}}
-    <tr><td>Model</td><td>{{json.node_details.model}}</td></tr>
+    {{#if node.node_details.model}}
+    <tr><td>Model</td><td>{{node.node_details.model}}</td></tr>
     {{/if}}
-    {{#if json.node_details.firmware_version}}
-    <tr><td>Firmware</td><td>{{json.node_details.firmware_version}}</td></tr>
+    {{#if node.node_details.firmware_version}}
+    <tr><td>Firmware</td><td>{{node.node_details.firmware_version}}</td></tr>
     {{/if}}
-    {{#each (filtertypes json.link_info "DTD")}}
+    {{#each dtd}}
     <tr {{#if @first}}class="node-peer-header"{{/if}}>
       {{#if @first}}
       <td>Direct Peers</td>
@@ -52,15 +52,6 @@
       <td><a class="node-link" href="#nodeinfo.{{name}}">{{name}}</a></td>
     </tr>
     {{/each}}
-    {{#each (filtertypes json.link_info "RF")}}
-    <tr {{#if @first}}class="node-peer-header"{{/if}}>
-      {{#if @first}}
-      <td>RF Peers</td>
-      {{else}}
-      <td></td>
-      {{/if}}
-      <td><a class="node-link" href="#nodeinfo.{{name}}">{{name}}</a></td>
-    </tr>
-    {{/each}}
+    {{> NodeRadios }}
   </tbody>
 </table>

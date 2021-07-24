@@ -1,0 +1,24 @@
+{{#each rf}}
+<tr {{#if @first}}class="node-peer-header"{{/if}}>
+  {{#if @first}}
+  <td>RF Peers</td>
+  {{else}}
+  <td></td>
+  {{/if}}
+  <td>
+    <div><a class="node-link" href="#nodeinfo.{{name}}">{{name}}</a></div>
+    <div class="node-snr">
+      {{#if (and signal noise)}}
+      <span class="local-snr">Local SNR: {{sub signal noise}} dB</span>
+      {{else}}
+      <span class="remote-snr null-snr">Local SNR: - dB</span>
+      {{/if}}
+      {{#if (and rlink.signal rlink.noise)}}
+      <span class="remote-snr">Remote SNR: {{sub rlink.signal rlink.noise}} dB</span>
+      {{else}}
+      <span class="remote-snr null-snr">Remote SNR: - dB</span>
+      {{/if}}
+    </div>
+  </td>
+</tr>
+{{/each}}
