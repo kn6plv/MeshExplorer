@@ -48,8 +48,6 @@ class AREDNNetwork {
         Bus.emit('aredn.nodes.update');
       }
     }
-    //await this._populateNodes(this.getRFNames());
-    //await this._populateNodes(this.getTUNNames());
     //await this._populateNodes(this.getAllNames());
   }
 
