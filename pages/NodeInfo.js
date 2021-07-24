@@ -1,13 +1,14 @@
 const Page = require('./Page');
 const Network = require('../aredn/Network');
 
-let id = 1;
+const REFRESH_TIMEOUT = 10 * 1000;
 
 class NodeInfo extends Page {
 
   constructor(root) {
     super(root);
     this.currentName = null;
+    this._running = false;
 
     this.nodesUpdate = this.nodesUpdate.bind(this);
   }
@@ -20,13 +21,25 @@ class NodeInfo extends Page {
 
   async deselect() {
     Bus.off('aredn.nodes.update', this.nodesUpdate);
+    this._stopRefresh();
+    this.currentName = null;
   }
 
   async tabSelect(arg) {
     if (arg !== this.currentName) {
       this.currentName = arg;
       this._setupProps();
-      this._updateProps().catch(() => {});
+      await this._updateProps();
+      this._startRefresh();
+    }
+  }
+
+  async 'ui.visible' (args) {
+    if (args.value) {
+      this._startRefresh(true);
+    }
+    else {
+      this._stopRefresh();
     }
   }
 
@@ -53,7 +66,7 @@ class NodeInfo extends Page {
     this.html('node-map-radios', this.template.NodeMapRadios({ home: node }));
     const radios = [];
     await Promise.all(rf.map(async link => {
-      const rnode = await Network.getNodeByName(link.hostname);
+      const rnode = await Network.getNodeByName(link.name);
       if (name !== this.currentName) {
         return;
       }
@@ -64,6 +77,35 @@ class NodeInfo extends Page {
         this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf }));
       }
     }));
+  }
+
+  _startRefresh(immediate) {
+    const refresh = async () => {
+      const node = await Network.getNodeByName(this.currentName);
+      if (!this._running) {
+        return;
+      }
+      const rf = Network.getRFLinks(node);
+      const start = Date.now();
+      if (rf.length) {
+        await Network.refreshNodesByNames([ this.currentName ].concat(rf.map(link => link.name)));
+        if (!this._running) {
+          return;
+        }
+      }
+      this._refreshTimer = setTimeout(refresh, Math.max(0, REFRESH_TIMEOUT - (Date.now() - start)));
+    }
+    this._stopRefresh();
+    this._running = true;
+    this._refreshTimer = setTimeout(refresh, immediate ? 0 : REFRESH_TIMEOUT);
+  }
+
+  _stopRefresh() {
+    this._running = false;
+    if (this._refreshTimer) {
+      clearTimeout(this._refreshTimer);
+      this._refreshTimer = null;
+    }
   }
 }
 

@@ -100,3 +100,11 @@ window.addEventListener('pageshow', runMessageManager);
 window.addEventListener('hashchange', evt => {
   send("tab.select", location.hash.split('#')[1]);
 });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    send('ui.visible', true);
+  }
+  else {
+    send('ui.visible', false);
+  }
+});

@@ -163,17 +163,23 @@ class AREDNNetwork {
     else {
       if (this.ages[name] + NODE_AGE < Date.now()) {
         setTimeout(async () => {
-          try {
-            if (await this._populateNodes([ name ])) {
-              Bus.emit('aredn.nodes.update');
-            }
-          }
-          catch (_) {
-          }
+          await this.refreshNodesByNames([ name ]);
         }, 0);
       }
     }
     return this.nodes[name];
+  }
+
+  async refreshNodesByNames(names) {
+    Log('refreshNodesByNames:', names);
+    try {
+      if (await this._populateNodes(names)) {
+        Bus.emit('aredn.nodes.update');
+      }
+    }
+    catch (e) {
+      Log(e);
+    }
   }
 
   canonicalHostname(name) {
