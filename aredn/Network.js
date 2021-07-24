@@ -150,7 +150,7 @@ class AREDNNetwork {
   }
 
   getDTDLinks(node) {
-    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.hostname.localeCompare(b.hostname));
+    return this.getNodeTypeLinks(node, 'DTD').sort((a,b) => a.hostname.localeCompare(b.hostname));
   }
 
   getRFLinks(node) {
@@ -167,7 +167,7 @@ class AREDNNetwork {
         setTimeout(async () => {
           try {
             if (await this._populateNodes([ name ])) {
-              emit('aredn.nodes.update');
+              Bus.emit('aredn.nodes.update');
             }
           }
           catch (_) {
