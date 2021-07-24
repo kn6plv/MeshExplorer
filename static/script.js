@@ -45,6 +45,11 @@ function runMessageManager() {
       fn(msg);
     }
   });
+  ws.addEventListener('open', () => {
+    if (location.hash) {
+      send("tab.select", location.hash.split('#')[1]);
+    }
+  });
 }
 
 const psend = {};
