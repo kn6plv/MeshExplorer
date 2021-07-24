@@ -22,7 +22,7 @@ if (LogBus.enabled) {
     }
   });
   global.Bus.on('removeListener', name => {
-    if (--((count[name] || {}).count) === 0) {
+    if (--((counts[name] || {}).count) === 0) {
       global.Bus.off(name, counts[name].log);
     }
   });

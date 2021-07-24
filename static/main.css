@@ -52,7 +52,7 @@ body {
   background-color: var(--info-background-color);
 }
 .body .col {
-  width: 220px;
+  min-width: 200px;
   white-space: nowrap;
   overflow-x: hidden;
   padding: 10px;
