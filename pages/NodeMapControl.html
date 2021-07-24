@@ -1,0 +1,16 @@
+<script>
+  nodeMap.eachLayer(layer => {
+    if (layer.getIcon || layer.getLatLngs) {
+      layer.remove();
+    }
+  });
+  {{#if (and json.lat json.lon)}}
+  const coord = [ {{json.lat}}, {{json.lon}} ];
+  const home = L.marker(coord, {
+    icon: homeIcon,
+    zIndexOffset: 1000,
+    title: "{{json.node}}"
+  });
+  nodeMap.addLayer(home);
+  {{/if}}
+</script>

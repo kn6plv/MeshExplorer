@@ -1,0 +1,10 @@
+{{#if items}}
+<div class="section-header">{{title}}</div>
+<div class="section-body">
+  {{#each items}}
+  <div class="host-item">
+    <a class="host-item-name" href="#nodeinfo.{{this}}">{{this}}</a>
+  </div>
+  {{/each}}
+</div>
+{{/if}}

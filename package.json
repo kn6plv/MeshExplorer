@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "debug": "^4.3.2",
+    "fast-glob": "^3.2.7",
+    "handlebars": "^4.7.7",
+    "koa": "^2.13.1",
+    "koa-cache-control": "^2.0.0",
+    "koa-router": "^10.0.0",
+    "koa-websocket": "^6.0.0",
+    "leaflet": "^1.7.1",
+    "nedb": "^1.8.0",
+    "node-fetch": "^2.6.1",
+    "node-geocoder": "^3.27.0"
+  }
+}

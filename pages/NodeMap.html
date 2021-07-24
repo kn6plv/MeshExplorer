@@ -1,0 +1,24 @@
+<div id="node-map-id"></div>
+<script>
+  window.homeIcon = L.icon({
+    iconUrl: '/img/homeIcon.png',
+    iconSize: [ 25, 25 ]
+  });
+  window.radioIcon = L.icon({
+    iconUrl: '/img/remoteIcon.png',
+    iconSize: [ 25, 25 ]
+  });
+  window.nodeMap = L.map('node-map-id', {
+  });
+  const tiles = L.tileLayer(
+    'http://kn6plv-tiles.local.mesh/tile/{z}/{x}/{y}.png', {
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }
+  );
+  nodeMap.addLayer(tiles);
+</script>
+<div id="node-map-control" style="display:none">
+  {{> NodeMapControl }}
+</div>
+<div id="node-map-radios" style="display:none">
+</div>

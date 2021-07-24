@@ -1,0 +1,185 @@
+const fetch = require('node-fetch');
+const Geo = require('../maps/Geo');
+const Radios = require('../radios/Radios');
+const Log = require('debug')('aredn');
+
+const NODE_AGE = 10 * 60 * 1000; // 10 minutes
+
+class AREDNNetwork {
+
+  constructor() {
+    this.hostname = 'localnode';
+    this.links = {};
+    this.names = {};
+    this.ips = {};
+    this.nodes = {};
+    this.radios = {};
+    this.ages = {};
+    this.pending = {};
+  }
+
+  start() {
+    this._getRoot().catch(e => {
+      Log(e);
+    });
+  }
+
+  async _getRoot() {
+    const req = await fetch('http://localnode.local.mesh/cgi-bin/sysinfo.json?link_info=1&hosts=1');
+    const json = await req.json();
+
+    this.links = json.link_info;
+    this.hostname = json.node;
+    this.names = {};
+    this.ips = {};
+    json.hosts.forEach(host => {
+      this.names[host.name] = host;
+      this.ips[host.ip] = host;
+    });
+    this.nodes[this.hostname] = json;
+    this.ages[this.hostname] = Date.now();
+    await this._updateRadios();
+
+    Bus.emit('aredn.nodes.update');
+
+    await this._populate();
+  }
+
+  async _populate() {
+    if (await this._populateNodes(this.getLocalNames())) {
+      if (this._updateRadios()) {
+        Bus.emit('aredn.nodes.update');
+      }
+    }
+    //await this._populateNodes(this.getRFNames());
+    //await this._populateNodes(this.getTUNNames());
+    //await this._populateNodes(this.getAllNames());
+  }
+
+  async _populateNodes(names) {
+    Log('populateNodes:', names);
+    let change = false;
+    const update = async name => {
+      try {
+        Log('get:', name);
+        const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1`);
+        Log('   :', name);
+        const json = await req.json();
+        json.extra = {
+          address: await Geo.latlon2address(json.lat, json.lon),
+          radio: Radios.lookup(json.node_details.model)
+        };
+        for (let ip in json.link_info) {
+          json.link_info[ip].name = this._canonicalHostname(json.link_info[ip].hostname);
+        }
+        if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
+          this.nodes[name] = json;
+          this.ages[name] = Date.now();
+          change = true;
+        }
+      }
+      catch (e) {
+        Log(e);
+      }
+      finally {
+        delete this.pending[name];
+      }
+    };
+    await Promise.all(names.map(name => {
+      let p = this.pending[name];
+      if (!p) {
+        p = update(name);
+        this.pending[name] = p;
+      }
+      return p;
+    }));
+    return change;
+  }
+
+  _updateRadios() {
+    Log('updateRadios:');
+    let changed = false;
+    const localNames = this.getLocalNames();
+    for (let i = 0; i < localNames.length; i++) {
+      const node = this.nodes[localNames[i]];
+      if (!node) {
+        continue;
+      }
+      for (let ip in node.link_info) {
+        const link = node.link_info[ip];
+        if (link.linkType !== 'RF') {
+          continue;
+        }
+        const radioName = this._canonicalHostname(link.hostname);
+        const entry = { name: radioName, ip: ip };
+        if (!this.radios[radioName] || JSON.stringify(this.radios[radioName]) != JSON.stringify(entry)) {
+          this.radios[radioName] = entry;
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  getTypeLinks(type) {
+    const links = [];
+    for (let ip in this.links) {
+      const link = this.links[ip];
+      if (link.linkType == type) {
+        links.push(Object.assign({ ip: ip }, link));
+      }
+    }
+    return links;
+  }
+
+  getLocalNames() {
+    return ([ this.hostname ].concat(this.getTypeLinks('DTD').map(link => this._canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
+  }
+
+  getRFNames() {
+    return Object.keys(this.radios).sort((a,b) => a.localeCompare(b));
+  }
+
+  getTUNNames() {
+    return this.getTypeLinks('TUN').map(link => this._canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
+  }
+
+  getAllNames() {
+    return Object.keys(this.names).sort((a,b) => a.localeCompare(b));
+  }
+
+  async getNodeByName(name) {
+    if (!this.nodes[name]) {
+      await this._populateNodes([ name ]);
+    }
+    else {
+      if (this.ages[name] + NODE_AGE < Date.now()) {
+        setTimeout(async () => {
+          try {
+            if (await this._populateNodes([ name ])) {
+              emit('aredn.nodes.update');
+            }
+          }
+          catch (_) {
+          }
+        }, 0);
+      }
+    }
+    return this.nodes[name];
+  }
+
+  async getNodeByIP(ip, updateEvent) {
+    const name = this.ips[ip];
+    if (!name) {
+      return null;
+    }
+    return await this.getNodeByName(name.name);
+  }
+
+  _canonicalHostname(name) {
+    return name.replace(/\.local\.mesh$/i, '');
+  }
+
+}
+
+module.exports = new AREDNNetwork();

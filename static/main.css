@@ -1,0 +1,144 @@
+:root {
+  --main-background-color: #1e1e1e;
+  --main-text-color: #f0f0f0;
+  --error-text-color: #c03d25;
+  --highlight-text-color: #ffffff;
+  --edge-background-color: #2e2e2e;
+  --info-background-color: #2e2e2e;
+  --highlight-background-color: #3e3e3e;
+  --select-background-color: #3a3844;
+  --modal-background-color: #2e2e2e;
+  --alt-list-background-color: #2e2e2e;
+  --button-disabled-color: #808080;
+  --button-disabled-background: #3e3e3e;
+  --spinner-color: #5e5e5e;
+  --property-border-color: #808080;
+  --minor-text-color: #c0c0c0;
+  --minor-background-color: #505050;
+  --disabled-text-color: #808080;
+  --placeholder-text-color: #606060;
+  --urgent-text-color: #c03d25;
+  --emphasis-text-color: #347794;
+  --error-border-color: #c03d25;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background-color: var(--main-background-color);
+  color: var(--main-text-color);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.header {
+  width: 100%;
+  height: 30px;
+  background-color: var(--info-background-color);
+}
+
+.body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow-y: hidden;
+  background-color: var(--info-background-color);
+}
+.body .col {
+  width: 220px;
+  white-space: nowrap;
+  overflow-x: hidden;
+  padding: 10px;
+}
+.body .info {
+  flex: 1;
+  padding: 20px;
+  border-top-left-radius: 20px;
+  background-color: var(--main-background-color);
+}
+
+.section {
+  overflow-x: hidden;
+  padding-left: 4px;
+}
+.section-header {
+  padding-top: 4px;
+  font-size: 1.1rem;
+}
+.section-body {
+  padding: 4px 0;
+  font-size: 0.75rem;
+  color: var(--minor-text-color);
+}
+.section-body .host-item {
+  padding: 2px 0;
+}
+.host-item-name {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+.node-info {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.node-properties {
+  width: 400px;
+  color: var(--main-text-color);
+  line-height: 1.25rem;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+.node-properties table {
+  width: 100%;
+}
+.node-properties td {
+  vertical-align: top;
+}
+.node-properties td:first-child {
+  width: 125px;
+}
+.node-properties td:last-child {
+  color: var(--minor-text-color);
+}
+.node-properties tr.name td {
+  color: var(--main-text-color);
+  font-size: 1.25rem;
+  padding-bottom: 5px;
+}
+.node-properties tr.description td {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding-bottom: 5px;
+}
+.node-properties tr.location td {
+  padding-top: 5px;
+}
+
+.node-map {
+  width: 600px;
+  height: 600px;
+  margin: 30px 0 0 30px;
+}
+#node-map-id {
+  width: 100%;
+  height: 100%;
+}
+
+.node-link {
+  color: inherit;
+  text-decoration: none;
+}
+.node-peer-header td {
+  padding-top: 16px;
+}
