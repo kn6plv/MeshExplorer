@@ -96,8 +96,10 @@ class NodeInfo extends Page {
       this._refreshTimer = setTimeout(refresh, Math.max(0, REFRESH_TIMEOUT - (Date.now() - start)));
     }
     this._stopRefresh();
-    this._running = true;
-    this._refreshTimer = setTimeout(refresh, immediate ? 0 : REFRESH_TIMEOUT);
+    if (this.currentName) {
+      this._running = true;
+      this._refreshTimer = setTimeout(refresh, immediate ? 0 : REFRESH_TIMEOUT);
+    }
   }
 
   _stopRefresh() {
