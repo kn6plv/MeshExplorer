@@ -1,18 +1,21 @@
 const NodeGeocoder = require('node-geocoder');
 const Nedb = require('nedb-promises');
+const Limiter = require('limiter');
 const Log = require('debug')('geo');
 
 const PROVIDER = 'openstreetmap';
-//const PROVIDER = 'here';
-//const KEY = 'h-nQsZFRM-nEdMavIGavDBsYb8kZPiCK1-ku7I---AA';
+const RATE_LIMIT_PER_SEC = 1;
 
 const DB_NAME = `${__dirname}/revgeo.db`;
 
 const geo = NodeGeocoder({
   provider: PROVIDER,
-  //apiKey: KEY
 });
 let db = null;
+const limiter = new Limiter.RateLimiter({
+  tokensPerInterval: RATE_LIMIT_PER_SEC,
+  interval: 'second'
+});
 
 class Geo {
 
@@ -28,11 +31,12 @@ class Geo {
     try {
       const key = `${lat},${lon}`;
       let r = await db.findOne({ _id: key });
-      Log(key, r);
       if (r) {
         r = JSON.parse(r.revgeo);
       }
       else {
+        await limiter.removeTokens(1);
+        Log('rev', lat, lon);
         r = await geo.reverse({
           lat: lat,
           lon: lon
