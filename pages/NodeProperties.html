@@ -1,6 +1,6 @@
 <table>
   <tbody>
-    <tr class="name"><td colspan="2">{{node.node}}</td></tr>
+    <tr class="name"><td colspan="2"><a href="http://{{node.node}}.local.mesh" target="_blank">{{node.node}}</a></td></tr>
     {{#if node.node_details.description}}
     <tr class="description"><td colspan="2">{{node.node_details.description}}</td></tr>
     {{/if}}
@@ -41,6 +41,9 @@
     {{/if}}
     {{#if node.node_details.firmware_version}}
     <tr><td>Firmware</td><td>{{node.node_details.firmware_version}}</td></tr>
+    {{/if}}
+    {{#if node.api_version}}
+    <tr><td>API</td><td>{{node.api_version}}</td></tr>
     {{/if}}
     {{#each dtd}}
     <tr {{#if @first}}class="node-peer-header"{{/if}}>

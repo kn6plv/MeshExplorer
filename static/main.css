@@ -116,6 +116,10 @@ body {
   font-size: 1.25rem;
   padding-bottom: 5px;
 }
+.node-properties tr.name td a {
+  color: inherit;
+  text-decoration: inherit;
+}
 .node-properties tr.description td {
   font-size: 0.75rem;
   line-height: 1rem;
