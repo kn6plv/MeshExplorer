@@ -48,7 +48,7 @@ class AREDNNetwork {
         Bus.emit('aredn.nodes.update');
       }
     }
-    //await this._populateNodes(this.getAllNames());
+    await this._populateNodes(this.getAllNames());
   }
 
   async _populateNodes(names) {
@@ -60,17 +60,19 @@ class AREDNNetwork {
         const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1`);
         Log('   :', name);
         const json = await req.json();
-        json.extra = {
-          address: await Geo.latlon2address(json.lat, json.lon),
-          radio: Radios.lookup(json.node_details.model)
-        };
-        for (let ip in json.link_info) {
-          json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
-        }
-        if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
-          this.nodes[name] = json;
-          this.ages[name] = Date.now();
-          change = true;
+        if (json.lat && json.lon && json.node_details) {
+          json.extra = {
+            address: await Geo.latlon2address(json.lat, json.lon),
+            radio: Radios.lookup(json.node_details.model)
+          };
+          for (let ip in json.link_info) {
+            json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
+          }
+          if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
+            this.nodes[name] = json;
+            this.ages[name] = Date.now();
+            change = true;
+          }
         }
       }
       catch (e) {
