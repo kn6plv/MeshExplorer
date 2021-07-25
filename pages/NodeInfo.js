@@ -1,5 +1,6 @@
 const Page = require('./Page');
 const Network = require('../aredn/Network');
+const Log = require('debug')('nodeinfo');
 
 const REFRESH_TIMEOUT = 10 * 1000;
 
@@ -70,12 +71,13 @@ class NodeInfo extends Page {
       if (name !== this.currentName) {
         return;
       }
+      try {
       if (rnode) {
         radios.push(rnode);
         this.html('node-map-radios', this.template.NodeMapRadios({ home: node, radios: radios }));
         link.rlink = Object.values(rnode.link_info).find(link => link.name === name && link.linkType === 'RF');
         this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf }));
-      }
+      } } catch(e) { Log(e); Log(rnode); }
     }));
   }
 

@@ -59,20 +59,36 @@ class AREDNNetwork {
         Log('get:', name);
         const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1`);
         Log('   :', name);
+        let valid = false;
         const json = await req.json();
-        if (json.lat && json.lon && json.node_details) {
-          json.extra = {
-            address: await Geo.latlon2address(json.lat, json.lon),
-            radio: Radios.lookup(json.node_details.model)
-          };
-          for (let ip in json.link_info) {
-            json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
-          }
-          if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
-            this.nodes[name] = json;
-            this.ages[name] = Date.now();
-            change = true;
-          }
+        switch (json.api_version) {
+          case '1.6':
+            json.extra = {
+              address: await Geo.latlon2address(json.lat, json.lon),
+              radio: Radios.lookup(json.node_details.model)
+            };
+            json.link_info = {};
+            valid = true;
+            break;
+          case '1.7':
+          case '1.8':
+            json.extra = {
+              address: await Geo.latlon2address(json.lat, json.lon),
+              radio: Radios.lookup(json.node_details.model)
+            };
+            for (let ip in json.link_info) {
+              json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
+            }
+            valid = true;
+            break;
+          default:
+            Log('Unknown API', json.api_version);
+            break;
+        }
+        if (valid && (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name]))) {
+          this.nodes[name] = json;
+          this.ages[name] = Date.now();
+          change = true;
         }
       }
       catch (e) {
