@@ -13,10 +13,12 @@
       {{else}}
       <span class="remote-snr null-snr">Local SNR: - dB</span>
       {{/if}}
+      {{#if rlink}}
       {{#if (and rlink.signal rlink.noise)}}
       <span class="remote-snr">Remote SNR: {{sub rlink.signal rlink.noise}} dB</span>
       {{else}}
       <span class="remote-snr null-snr">Remote SNR: - dB</span>
+      {{/if}}
       {{/if}}
     </div>
   </td>
