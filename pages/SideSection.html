@@ -2,13 +2,15 @@
 <div class="section-header">{{title}}</div>
 <div class="section-body">
   {{#each items}}
-  <div class="host-item">
-    {{#if title}}
+  {{#if title}}
+  <div class="host-item-keep">
     <a class="host-item-name" href="#{{link}}">{{title}}</a>
-    {{else}}
-    <a class="host-item-name" href="#nodeinfo.{{this}}">{{this}}</a>
-    {{/if}}
   </div>
+  {{else}}
+  <div class="host-item">
+    <a class="host-item-name" href="#nodeinfo.{{this}}">{{this}}</a>
+  </div>
+  {{/if}}
   {{/each}}
 </div>
 {{/if}}

@@ -10,7 +10,26 @@
     <title>Mesh Explorer</title>
   </head>
   <body>
-    <div class="header"></div>
+    <div class="header">
+      <div class="node-filter">
+        <input id="node-filter" oninput="nodeFilter(event.target.value)" placeholder="Filter...">
+        <script>
+          function nodeFilter(v) {
+            v = v.toLowerCase();
+            const elems = document.getElementsByClassName("host-item");
+            for (let i = 0; i < elems.length; i++) {
+              const elem = elems[i];
+              if (elem.innerText.toLowerCase().indexOf(v) === -1) {
+                elem.style.display = 'none';
+              }
+              else {
+                elem.style.display = null;
+              }
+            }
+          }
+        </script>
+      </div>
+    </div>
     <div class="body">
       <div id="side" class="col">
         {{> Side }}

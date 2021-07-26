@@ -1,6 +1,8 @@
 const Page = require('./Page');
 const Network = require('../aredn/Network');
 
+let count = 1;
+
 class Side extends Page {
 
   constructor(root) {
@@ -23,6 +25,7 @@ class Side extends Page {
     this.html('hosts-radio', this.template.SideSection({ title: 'Radio', items: Network.getRFNames() }));
     this.html('hosts-tun', this.template.SideSection({ title: 'Tun', items: Network.getTUNNames() }));
     this.html('hosts-other', this.template.SideSection({ title: 'Network', items: Network.getAllNames() }));
+    this.html('hosts-filter', this.template.SideFilter({ count: count++ }));
   }
 }
 
