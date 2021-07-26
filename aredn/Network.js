@@ -93,18 +93,21 @@ class AREDNNetwork {
             if (json.meshrf.channel >= 3380 && json.meshrf.channel <= 3495) {
               json.icon = 'blue';
             }
+            else if (json.meshrf.channel >= 131 && json.meshrf.channel <= 184) {
+              json.icon = 'orange';
+            }
             else if (json.meshrf.freq) {
               if (json.meshrf.freq.indexOf('2.') == 0) {
                 json.icon = 'purple';
               }
               else if (json.meshrf.freq.indexOf('5.') == 0) {
-                json.icon = 'orange'
+                json.icon = 'orange';
               }
               else if (json.meshrf.freq.indexOf('3.') == 0) {
-                json.icon = 'blue'
+                json.icon = 'blue';
               }
               else if (json.meshrf.freq.indexOf('900') == 0) {
-                json.icon = 'magenta'
+                json.icon = 'magenta';
               }
             }
           }
