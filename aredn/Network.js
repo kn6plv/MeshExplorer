@@ -176,6 +176,10 @@ class AREDNNetwork {
     return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.hostname.localeCompare(b.hostname));
   }
 
+  getTUNLinks(node) {
+    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.hostname.localeCompare(b.hostname));
+  }
+
   getNodeByNameImmediate(name) {
     if (!name) {
       return null;

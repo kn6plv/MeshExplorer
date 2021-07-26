@@ -16,7 +16,10 @@
     {{/if}}
   }
   {{/each}}
-  {{#each links}}
+  {{#each rf}}
   nodeMap.addLayer(L.polyline([[{{0}}],[{{1}}]], { color: 'green', weight: 1 }));
+  {{/each}}
+  {{#each tun}}
+  nodeMap.addLayer(L.polyline([[{{0}}],[{{1}}]], { color: 'grey', weight: 1.5, dashArray: [ 5, 5 ] }));
   {{/each}}
 </script>

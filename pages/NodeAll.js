@@ -32,7 +32,8 @@ class NodeAll extends Page {
 
   _updateRadios() {
     const nodes = Network.getAllAvailableNodes();
-    const links = {};
+    const rf = {};
+    const tun = {};
     nodes.forEach(node => {
       if (!node.lat || !node.lon) {
         return;
@@ -41,15 +42,25 @@ class NodeAll extends Page {
       Network.getRFLinks(node).forEach(link => {
         const to = link.name;
         const key = `${from}:${to}`;
-        if (!links[key] && !links[`${to}:${from}`]) {
+        if (!rf[key] && !rf[`${to}:${from}`]) {
           const lnode = Network.getNodeByNameImmediate(to);
           if (lnode && lnode.lat && lnode.lon) {
-            links[key] = [ [ node.lat, node.lon ], [ lnode.lat, lnode.lon ] ];
+            rf[key] = [ [ node.lat, node.lon ], [ lnode.lat, lnode.lon ] ];
+          }
+        }
+      });
+      Network.getTUNLinks(node).forEach(link => {
+        const to = link.name;
+        const key = `${from}:${to}`;
+        if (!tun[key] && !tun[`${to}:${from}`]) {
+          const lnode = Network.getNodeByNameImmediate(to);
+          if (lnode && lnode.lat && lnode.lon) {
+            tun[key] = [ [ node.lat, node.lon ], [ lnode.lat, lnode.lon ] ];
           }
         }
       });
     });
-    this.html('node-all-map-radios', this.template.NodeAllMapRadios({ radios: nodes, links: Object.values(links) }));
+    this.html('node-all-map-radios', this.template.NodeAllMapRadios({ radios: nodes, rf: Object.values(rf), tun: Object.values(tun) }));
   }
 
 }
