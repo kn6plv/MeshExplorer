@@ -137,12 +137,8 @@ class AREDNNetwork {
     return changed;
   }
 
-  getTypeLinks(type) {
-    return this.getNodeTypeLinks(this.json, type);
-  }
-
   getLocalNames() {
-    return ([ this.hostname ].concat(this.getTypeLinks('DTD').map(link => this.canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
+    return ([ this.hostname ].concat(this.getNodeTypeLinks(this.json, 'DTD').map(link => this.canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
   }
 
   getRFNames() {
@@ -150,7 +146,7 @@ class AREDNNetwork {
   }
 
   getTUNNames() {
-    return this.getTypeLinks('TUN').map(link => this.canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
+    return this.getNodeTypeLinks(this.json, 'TUN').map(link => this.canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
   }
 
   getAllNames() {
@@ -169,15 +165,34 @@ class AREDNNetwork {
   }
 
   getDTDLinks(node) {
-    return this.getNodeTypeLinks(node, 'DTD').sort((a,b) => a.hostname.localeCompare(b.hostname));
+    return this.getNodeTypeLinks(node, 'DTD').sort((a,b) => a.name.localeCompare(b.name));
   }
 
   getRFLinks(node) {
-    return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.hostname.localeCompare(b.hostname));
+    return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.name.localeCompare(b.name));
   }
 
   getTUNLinks(node) {
-    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.hostname.localeCompare(b.hostname));
+    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.name.localeCompare(b.name));
+  }
+
+  getReverseLinks(node, type) {
+    const name = node.node;
+    const rlinks = [];
+    for (let rname in this.nodes) {
+      const rnode = this.nodes[rname];
+      if (!rnode || !rnode.link_info) {
+        continue;
+      }
+      for (let ip in rnode.link_info) {
+        const link = rnode.link_info[ip];
+        if (link.name === name && link.linkType === type) {
+          rlinks.push(Object.assign({ rname: rname, ip: ip }, link));
+          break;
+        }
+      }
+    }
+    return rlinks;
   }
 
   getNodeByNameImmediate(name) {
