@@ -87,11 +87,33 @@ class AREDNNetwork {
             Log('Unknown API', json.api_version);
             break;
         }
-        if (valid && (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name]))) {
-          this.nodes[name] = json;
-          this.ages[name] = Date.now();
-          change = true;
-          Bus.emit('aredn.node.update', { name: name });
+        if (valid) {
+          json.icon = 'gray';
+          if (json.meshrf) {
+            if (json.meshrf.channel >= 3380 && json.meshrf.channel <= 3495) {
+              json.icon = 'blue';
+            }
+            else if (json.meshrf.freq) {
+              if (json.meshrf.freq.indexOf('2.') == 0) {
+                json.icon = 'purple';
+              }
+              else if (json.meshrf.freq.indexOf('5.') == 0) {
+                json.icon = 'orange'
+              }
+              else if (json.meshrf.freq.indexOf('3.') == 0) {
+                json.icon = 'blue'
+              }
+              else if (json.meshrf.freq.indexOf('900') == 0) {
+                json.icon = 'magenta'
+              }
+            }
+          }
+          if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
+            this.nodes[name] = json;
+            this.ages[name] = Date.now();
+            change = true;
+            Bus.emit('aredn.node.update', { name: name });
+          }
         }
       }
       catch (e) {
