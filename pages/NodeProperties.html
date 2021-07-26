@@ -18,7 +18,9 @@
     <tr><td>RF Status</td><td>On</td></tr>
     <tr><td>SSID</td><td>{{node.meshrf.ssid}}</td></tr>
     <tr><td>RF Channel</td><td>{{node.meshrf.channel}}</td></tr>
+    {{#if node.meshrf.freq}}
     <tr><td>RF Freq</td><td>{{node.meshrf.freq}}</td></tr>
+    {{/if}}
     <tr><td>Bandwidth</td><td>{{node.meshrf.chanbw}} MHz</td></tr>
     {{#if node.extra.radio.antennaGain}}
     <tr><td>Antenna Gain</td><td>{{node.extra.radio.antennaGain}} dBi</td></tr>

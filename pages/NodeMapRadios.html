@@ -10,6 +10,7 @@
   const lines = [];
   {{#each radios}}
   {
+    {{#if (and lat lon)}}
     const coord = [ {{lat}}, {{lon}} ];
     lines.push([ home, coord ]);
     const mark = L.marker(coord, { icon: radioIcon, title: "{{node}}" });
@@ -18,6 +19,7 @@
       location.hash = `nodeinfo.${mark.options.title}`;
     });
     all.push(coord);
+    {{/if}}
   }
   {{/each}}
   nodeMap.addLayer(L.polyline(lines, { color: 'green', weight: 2 }))
