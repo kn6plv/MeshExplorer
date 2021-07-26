@@ -1,11 +1,12 @@
 <script>
   nodeMap.eachLayer(layer => {
-    if ((layer.getIcon && layer.getIcon() == radioIcon) || layer.getLatLngs) {
+    if (layer.getIcon || layer.getLatLngs) {
       layer.remove();
     }
   });
   {{#if (and home.lat home.lon)}}
   const home = [ {{home.lat}}, {{home.lon}} ];
+  nodeMap.addLayer(L.marker(home, { icon: icons.{{home.icon}}, zIndexOffset: 1000, title: "{{home.node}}" }));
   const all = [ home ];
   const lines = [];
   {{#each radios}}
@@ -13,7 +14,7 @@
     {{#if (and lat lon)}}
     const coord = [ {{lat}}, {{lon}} ];
     lines.push([ home, coord ]);
-    const mark = L.marker(coord, { icon: radioIcon, title: "{{node}}" });
+    const mark = L.marker(coord, { icon: icons.black, title: "{{node}}" });
     nodeMap.addLayer(mark);
     mark.on('click', _ => {
       location.hash = `nodeinfo.${mark.options.title}`;
@@ -22,7 +23,7 @@
     {{/if}}
   }
   {{/each}}
-  nodeMap.addLayer(L.polyline(lines, { color: 'green', weight: 2 }))
+  nodeMap.addLayer(L.polyline(lines, { color: "{{home.icon}}", weight: 2 }))
   const mapState = history.state && history.state.mapState;
   if (mapState) {
     nodeMap.setView([ mapState.lat, mapState.lon ], mapState.zoom, { animate: true });

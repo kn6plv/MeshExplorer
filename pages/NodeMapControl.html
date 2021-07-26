@@ -7,7 +7,7 @@
   {{#if (and node.lat node.lon)}}
   const coord = [ {{node.lat}}, {{node.lon}} ];
   const home = L.marker(coord, {
-    icon: homeIcon,
+    icon: icons.{{node.icon}},
     zIndexOffset: 1000,
     title: "{{node.node}}"
   });

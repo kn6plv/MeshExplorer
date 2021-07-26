@@ -33,10 +33,13 @@ class NodeAll extends Page {
   _updateRadios() {
     const nodes = Network.getAllAvailableNodes();
     const rf = {};
+    const bands = {
+      gray: [], blue: [], purple: [], orange: [], magenta: []
+    };
     const tun = {};
-    nodes.forEach(node => {
+    const radios = nodes.filter(node => {
       if (!node.lat || !node.lon) {
-        return;
+        return false;
       }
       const from = node.node;
       Network.getRFLinks(node).forEach(link => {
@@ -45,7 +48,8 @@ class NodeAll extends Page {
         if (!rf[key] && !rf[`${to}:${from}`]) {
           const lnode = Network.getNodeByNameImmediate(to);
           if (lnode && lnode.lat && lnode.lon) {
-            rf[key] = [ [ node.lat, node.lon ], [ lnode.lat, lnode.lon ] ];
+            rf[key] = true;
+            bands[node.icon].push([ [ node.lat, node.lon ], [ lnode.lat, lnode.lon ] ]);
           }
         }
       });
@@ -59,8 +63,9 @@ class NodeAll extends Page {
           }
         }
       });
+      return true;
     });
-    this.html('node-all-map-radios', this.template.NodeAllMapRadios({ radios: nodes, rf: Object.values(rf), tun: Object.values(tun) }));
+    this.html('node-all-map-radios', this.template.NodeAllMapRadios({ radios: radios, bands: bands, tun: Object.values(tun) }));
   }
 
 }

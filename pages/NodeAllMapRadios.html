@@ -1,6 +1,6 @@
 <script>
   nodeMap.eachLayer(layer => {
-    if ((layer.getIcon && layer.getIcon() == radioIcon) || layer.getLatLngs) {
+    if (layer.getIcon || layer.getLatLngs) {
       layer.remove();
     }
   });
@@ -8,7 +8,7 @@
   {
     {{#if (and lat lon)}}
     const coord = [ {{lat}}, {{lon}} ];
-    const mark = L.marker(coord, { icon: radioIcon, title: "{{node}}" });
+    const mark = L.marker(coord, { icon: icons.{{icon}}, title: "{{node}}" });
     nodeMap.addLayer(mark);
     mark.on('click', _ => {
       location.hash = `nodeinfo.${mark.options.title}`;
@@ -16,6 +16,8 @@
     {{/if}}
   }
   {{/each}}
-  nodeMap.addLayer(L.polyline({{{stringify rf}}}, { color: 'green', weight: 1 }));
+  {{#each bands}}
+  nodeMap.addLayer(L.polyline({{{stringify this}}}, { color: '{{@key}}', weight: 1 }));
+  {{/each}}
   nodeMap.addLayer(L.polyline({{{stringify tun}}}, { color: 'grey', weight: 1.5, dashArray: [ 5, 5 ] }));
 </script>
