@@ -1,13 +1,15 @@
 const Template = require('./Template');
 const Network = require('../aredn/Network');
-const Page = require('./Page');
 const Side = require('./Side');
+const Page = require('./Page');
+const NodeAll = require('./NodeAll');
 const NodeInfo = require('./NodeInfo');
 const Log = require('debug')('ui');
 
 async function HTML(ctx) {
   Template.load();
   ctx.body = Template.Main({
+    overview: [ { title: 'All', link: 'nodeall' } ],
     local: Network.getLocalNames(),
     radio: Network.getRFNames(),
     tun: Network.getTUNNames(),
@@ -42,10 +44,11 @@ async function WS(ctx) {
   };
   State.side = new Side(State);
   State.tabs = {
-    overview: new Page(State),
+    main: new Page(State),
+    nodeall: new NodeAll(State),
     nodeinfo: new NodeInfo(State)
   };
-  State.current = State.tabs.overview,
+  State.current = State.tabs.main,
   State.side.select();
   State.current.select();
 
@@ -96,24 +99,26 @@ async function WS(ctx) {
   });
 
   State.onMessage['tab.select'] = async msg => {
-    if (!msg.value) {
-      return;
-    }
-    const tabset = msg.value.split('.');
+    const tabset = (msg.value || 'main').split('.');
+    Log('tab.select:', tabset[0]);
     const tab = State.tabs[tabset[0]];
     if (!tab) {
       return;
     }
     if (tab !== State.current) {
+      Log('deselect:');
       await State.current.deselect();
       State.current = tab;
       send('page.change', msg.value);
+      Log('select:');
       await State.current.select();
     }
     else {
+      Log('reselect:');
       await State.current.reselect();
     }
     if (tabset[1]) {
+      Log('tabset:', tabset.slice(1).join('.'));
       State.current.tabSelect(tabset.slice(1).join('.'));
     }
   }

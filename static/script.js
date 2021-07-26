@@ -46,9 +46,7 @@ function runMessageManager() {
     }
   });
   ws.addEventListener('open', () => {
-    if (location.hash) {
-      send("tab.select", location.hash.split('#')[1]);
-    }
+    send("tab.select", location.hash.split('#')[1] || 'nodeall');
   });
 }
 
@@ -93,7 +91,7 @@ onMessage['html.update'] = msg => {
 }
 
 onMessage['page.change'] = msg => {
-  location.hash = msg.value;
+  location.hash = msg.value || '';
 }
 
 window.addEventListener('pageshow', runMessageManager);

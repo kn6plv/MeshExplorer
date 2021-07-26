@@ -1,0 +1,22 @@
+<script>
+  nodeMap.eachLayer(layer => {
+    if ((layer.getIcon && layer.getIcon() == radioIcon) || layer.getLatLngs) {
+      layer.remove();
+    }
+  });
+  {{#each radios}}
+  {
+    {{#if (and lat lon)}}
+    const coord = [ {{lat}}, {{lon}} ];
+    const mark = L.marker(coord, { icon: radioIcon, title: "{{node}}" });
+    nodeMap.addLayer(mark);
+    mark.on('click', _ => {
+      location.hash = `nodeinfo.${mark.options.title}`;
+    });
+    {{/if}}
+  }
+  {{/each}}
+  {{#each links}}
+  nodeMap.addLayer(L.polyline([[{{0}}],[{{1}}]], { color: 'green', weight: 1 }));
+  {{/each}}
+</script>

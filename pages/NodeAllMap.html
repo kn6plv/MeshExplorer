@@ -1,11 +1,7 @@
 <div id="node-map-id"></div>
 <script>
-  window.homeIcon = L.icon({
-    iconUrl: '/img/blueIcon.png',
-    iconSize: [ 25, 25 ]
-  });
   window.radioIcon = L.icon({
-    iconUrl: '/img/orangeIcon.png',
+    iconUrl: '/img/blueIcon.png',
     iconSize: [ 25, 25 ]
   });
   window.nodeMap = L.map('node-map-id', {
@@ -16,9 +12,7 @@
     }
   );
   nodeMap.addLayer(tiles);
+  nodeMap.setView([ {{home.lat}}, {{home.lon}} ], 11, { animate: true });
 </script>
-<div id="node-map-control" style="display:none">
-  {{> NodeMapControl }}
-</div>
-<div id="node-map-radios" style="display:none">
+<div id="node-all-map-radios" style="display:none">
 </div>

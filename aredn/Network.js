@@ -48,7 +48,9 @@ class AREDNNetwork {
         Bus.emit('aredn.nodes.update');
       }
     }
-    await this._populateNodes(this.getAllNames());
+    if (await this._populateNodes(this.getAllNames())) {
+      Bus.emit('aredn.nodes.update');
+    }
   }
 
   async _populateNodes(names) {
@@ -89,6 +91,7 @@ class AREDNNetwork {
           this.nodes[name] = json;
           this.ages[name] = Date.now();
           change = true;
+          Bus.emit('aredn.node.update', { name: name });
         }
       }
       catch (e) {
@@ -173,7 +176,22 @@ class AREDNNetwork {
     return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.hostname.localeCompare(b.hostname));
   }
 
+  getNodeByNameImmediate(name) {
+    if (!name) {
+      return null;
+    }
+    name = this.canonicalHostname(name);
+    const node = this.nodes[name];
+    if (!node) {
+      this._populateNodes([ name ]).catch(e => Log(e));
+    }
+    return node;
+  }
+
   async getNodeByName(name) {
+    if (!name) {
+      return null;
+    }
     name = this.canonicalHostname(name);
     if (!this.nodes[name]) {
       await this._populateNodes([ name ]);
@@ -186,6 +204,10 @@ class AREDNNetwork {
       }
     }
     return this.nodes[name];
+  }
+
+  getAllAvailableNodes() {
+    return Object.values(this.nodes).filter(node => node);
   }
 
   async refreshNodesByNames(names) {

@@ -15,20 +15,23 @@ class NodeInfo extends Page {
   }
 
   async select() {
+    super.select();
     this.html('info', this.template.NodeInfo());
 
     Bus.on('aredn.nodes.update', this.nodesUpdate);
   }
 
   async deselect() {
+    super.deselect();
     Bus.off('aredn.nodes.update', this.nodesUpdate);
     this._stopRefresh();
     this.currentName = null;
   }
 
-  async tabSelect(arg) {
-    if (arg !== this.currentName) {
-      this.currentName = arg;
+  async tabSelect(tab) {
+    super.tabSelect(tab);
+    if (tab !== this.currentName) {
+      this.currentName = tab;
       this._setupProps();
       await this._updateProps();
       this._startRefresh();
@@ -83,7 +86,7 @@ class NodeInfo extends Page {
   _startRefresh(immediate) {
     const refresh = async () => {
       const node = await Network.getNodeByName(this.currentName);
-      if (!this._running) {
+      if (!this._running || !node) {
         return;
       }
       const rf = Network.getRFLinks(node);

@@ -43,7 +43,7 @@ class Page {
     }
   }
 
-  tabSelect(tab, arg) {
+  tabSelect(tab) {
     if (this.currentTab === this.tabs[tab] || !this.tabs[tab]) {
       return;
     }
@@ -51,7 +51,7 @@ class Page {
       this.currentTab.deselect();
     }
     this.currentTab = this.tabs[tab];
-    this.currentTab.select(arg);
+    this.currentTab.select();
   }
 
   async defaultMsg(msg) {

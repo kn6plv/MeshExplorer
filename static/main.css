@@ -159,3 +159,8 @@ body {
 .null-snr {
   color: var(--disabled-text-color);
 }
+
+.node-all, .node-all-map {
+  width: 100%;
+  height: 100%;
+}
