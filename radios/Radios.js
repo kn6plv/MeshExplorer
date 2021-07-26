@@ -14,10 +14,11 @@ const radios = {
     txPower: 27
   },
   'ubiquiti loco m xw': {
-
+    antennaGain: 13,
+    antennaBeam: 45,
+    txPower: 23
   },
   'nanostation m5 xw': {
-
   },
   'ubiquiti nanostation loco m2': {
     antennaGain: 8.5,
@@ -25,7 +26,6 @@ const radios = {
     txPower: 23
   },
   'ubiquiti nanostation m': {
-
   },
   'ubiquiti nanostation m (xw)': {
     antennaGain: 16,
