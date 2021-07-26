@@ -1,0 +1,12 @@
+{{#each tun}}
+<tr {{#if @first}}class="node-peer-header"{{/if}}>
+  {{#if @first}}
+  <td>Tunnels</td>
+  {{else}}
+  <td></td>
+  {{/if}}
+  <td>
+    <div><a class="node-link" href="#nodeinfo.{{name}}">{{name}}</a></div>
+  </td>
+</tr>
+{{/each}}
