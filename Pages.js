@@ -13,6 +13,10 @@ const Pages = {
   '/css/leaflet.css':   { path: `${__dirname}/node_modules/leaflet/dist/leaflet.css`, type: 'text/css' },
   '/img/blueIcon.png':  { path: `${__dirname}/static/blueIcon.png`, type: 'image/png', encoding: 'binary' },
   '/img/orangeIcon.png':  { path: `${__dirname}/static/orangeIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/grayIcon.png':  { path: `${__dirname}/static/grayIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/purpleIcon.png':  { path: `${__dirname}/static/purpleIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/magentaIcon.png':  { path: `${__dirname}/static/magentaIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/blackIcon.png':  { path: `${__dirname}/static/blackIcon.png`, type: 'image/png', encoding: 'binary' },
 };
 
 
