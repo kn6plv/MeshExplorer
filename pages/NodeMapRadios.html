@@ -7,10 +7,11 @@
   {{#if (and home.lat home.lon)}}
   const home = [ {{home.lat}}, {{home.lon}} ];
   const all = [ home ];
+  const lines = [];
   {{#each radios}}
   {
     const coord = [ {{lat}}, {{lon}} ];
-    nodeMap.addLayer(L.polyline([ home, coord ], { color: 'green', weight: 2 }))
+    lines.push([ home, coord ]);
     const mark = L.marker(coord, { icon: radioIcon, title: "{{node}}" });
     nodeMap.addLayer(mark);
     mark.on('click', _ => {
@@ -19,6 +20,7 @@
     all.push(coord);
   }
   {{/each}}
+  nodeMap.addLayer(L.polyline(lines, { color: 'green', weight: 2 }))
   const mapState = history.state && history.state.mapState;
   if (mapState) {
     nodeMap.setView([ mapState.lat, mapState.lon ], mapState.zoom, { animate: true });

@@ -84,11 +84,8 @@ Handlebars.registerHelper({
   now: function() {
     return Date.now();
   },
-  filtertypes(links, type) {
-    if (!links) {
-      return null;
-    }
-    return Object.values(links).filter(link => link.linkType === type);
+  stringify: function(v) {
+    return JSON.stringify(v);
   }
 });
 
