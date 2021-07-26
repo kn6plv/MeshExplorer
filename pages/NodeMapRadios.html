@@ -7,7 +7,6 @@
   {{#if (and home.lat home.lon)}}
   const home = [ {{home.lat}}, {{home.lon}} ];
   const all = [ home ];
-  {{#if radios}}
   {{#each radios}}
   {
     const coord = [ {{lat}}, {{lon}} ];
@@ -20,9 +19,17 @@
     all.push(coord);
   }
   {{/each}}
-  nodeMap.fitBounds(L.latLngBounds(all));
-  {{else}}
-  nodeMap.setView(home, 12, { animate: true });
-  {{/if}}
+  const mapState = history.state && history.state.mapState;
+  if (mapState) {
+    nodeMap.setView([ mapState.lat, mapState.lon ], mapState.zoom, { animate: true });
+  }
+  else {
+    if (all.length > 1) {
+      nodeMap.fitBounds(L.latLngBounds(all));
+    }
+    else {
+      nodeMap.setView(home, 12, { animate: true });
+    }
+  }
   {{/if}}
 </script>

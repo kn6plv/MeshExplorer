@@ -16,6 +16,12 @@
     }
   );
   nodeMap.addLayer(tiles);
+  const um = () => {
+    const center = nodeMap.getCenter();
+    history.replaceState({ mapState: { lat: center.lat, lon: center.lng, zoom: nodeMap.getZoom() } }, '');
+  }
+  nodeMap.on('moveend', um);
+  nodeMap.on('zoomend', um);
 </script>
 <div id="node-map-control" style="display:none">
   {{> NodeMapControl }}
