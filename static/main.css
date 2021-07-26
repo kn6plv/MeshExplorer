@@ -130,7 +130,8 @@ body {
 }
 
 .node-map {
-  width: 600px;
+  flex: 1;
+  min-width: 600px;
   height: 600px;
   margin: 30px 0 0 30px;
 }
