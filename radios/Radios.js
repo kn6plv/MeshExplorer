@@ -32,6 +32,9 @@ const radios = {
     antennaBeam: 43,
     txPower: 27
   },
+  'ubiquiti rocket m': {
+    txPower: 27
+  },
   'ubiquiti rocket m xw': {
     txPower: 27
   },
@@ -48,13 +51,16 @@ const radios = {
     antennaGain: 27,
     antennaBeam: 6.4,
     txPower: 28
+  },
+  'mikrotik routerboard 912uag-5hpnd': {
+    txPower: 30
   }
 };
 
 class Radios {
 
   lookup(name) {
-    return name ? radios[name.toLowerCase()] : null;
+    return name ? radios[name.trim().toLowerCase()] : null;
   }
 
 }
