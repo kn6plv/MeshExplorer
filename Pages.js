@@ -11,8 +11,8 @@ const Pages = {
   '/js/leaflet.js':     { path: `${__dirname}/node_modules/leaflet/dist/leaflet.js`, type: 'text/javascript' },
   '/css/main.css':      { path: `${__dirname}/static/main.css`, type: 'text/css' },
   '/css/leaflet.css':   { path: `${__dirname}/node_modules/leaflet/dist/leaflet.css`, type: 'text/css' },
-  '/img/homeIcon.png':  { path: `${__dirname}/static/homeIcon.png`, type: 'image/png', encoding: 'binary' },
-  '/img/remoteIcon.png':  { path: `${__dirname}/static/remoteIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/blueIcon.png':  { path: `${__dirname}/static/blueIcon.png`, type: 'image/png', encoding: 'binary' },
+  '/img/orangeIcon.png':  { path: `${__dirname}/static/orangeIcon.png`, type: 'image/png', encoding: 'binary' },
 };
 
 
