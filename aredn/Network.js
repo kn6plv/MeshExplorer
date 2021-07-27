@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const URL = require('url');
 const Geo = require('../maps/Geo');
 const Radios = require('../radios/Radios');
 const Log = require('debug')('aredn');
@@ -59,7 +60,7 @@ class AREDNNetwork {
     const update = async name => {
       try {
         Log('get:', name);
-        const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1`);
+        const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1&services_local=1`);
         Log('   :', name);
         let valid = false;
         const json = await req.json();
@@ -110,6 +111,18 @@ class AREDNNetwork {
                 json.icon = 'magenta';
               }
             }
+          }
+          if (json.services_local) {
+            json.services_local.forEach(service => {
+              const url = new URL.URL(service.link);
+              if (url.port === '0') {
+                service.link = null;
+              }
+              else if (url.hostname.indexOf('.') === -1) {
+                url.hostname = `${url.hostname}.local.mesh`;
+                service.link = url.toString();
+              }
+            });
           }
           if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
             this.nodes[name] = json;
@@ -218,6 +231,10 @@ class AREDNNetwork {
       }
     }
     return rlinks;
+  }
+
+  getServices(node) {
+    return node.services_local;
   }
 
   getNodeByNameImmediate(name) {

@@ -72,7 +72,8 @@ class NodeInfo extends Page {
         rf.push({ name: rrf.rname });
       }
     });
-    this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun }));
+    const service = Network.getServices(node);
+    this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun, service: service }));
     this.html('node-map-control', this.template.NodeMapControl({ node: node }));
     this.html('node-map-radios', this.template.NodeMapRadios({ home: node }));
     const radios = [];
@@ -85,7 +86,7 @@ class NodeInfo extends Page {
         radios.push(rnode);
         this.html('node-map-radios', this.template.NodeMapRadios({ home: node, radios: radios }));
         link.rlink = Object.values(rnode.link_info).find(lk => lk.name === name && lk.linkType === 'RF');
-        this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun }));
+        this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun, service: service }));
       }
     }));
   }

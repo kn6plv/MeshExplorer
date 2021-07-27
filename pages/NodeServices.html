@@ -1,0 +1,18 @@
+{{#each service}}
+<tr {{#if @first}}class="node-peer-header"{{/if}}>
+  {{#if @first}}
+  <td>Services</td>
+  {{else}}
+  <td></td>
+  {{/if}}
+  <td>
+    <div>
+      {{#if link}}
+      <a class="node-link" href="{{link}}" target="_blank">{{name}}</a>
+      {{else}}
+      {{name}}
+      {{/if}}
+    </div>
+  </td>
+</tr>
+{{/each}}
