@@ -176,7 +176,7 @@ body {
   padding-right: 8px;
 }
 .distance {
-  padding-left: 4px;
+  padding-left: 6px;
   color: var(--minor-text-color);
 }
 .null-snr {
