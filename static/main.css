@@ -154,7 +154,7 @@ body {
   flex: 1;
   min-width: 600px;
   min-height: 600px;
-  margin: 30px 0 0 30px;
+  margin-left: 30px;
 }
 #node-map-id {
   width: 100%;
