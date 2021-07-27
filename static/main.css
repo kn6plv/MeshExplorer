@@ -175,8 +175,9 @@ body {
 .local-snr {
   padding-right: 8px;
 }
-.remote-snr {
-
+.distance {
+  padding-left: 4px;
+  color: var(--minor-text-color);
 }
 .null-snr {
   color: var(--disabled-text-color);

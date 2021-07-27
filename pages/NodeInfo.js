@@ -1,3 +1,4 @@
+const GeoDistance = require('geo-distance');
 const Page = require('./Page');
 const Network = require('../aredn/Network');
 const Log = require('debug')('nodeinfo');
@@ -86,6 +87,7 @@ class NodeInfo extends Page {
         radios.push(rnode);
         this.html('node-map-radios', this.template.NodeMapRadios({ home: node, radios: radios }));
         link.rlink = Object.values(rnode.link_info).find(lk => lk.name === name && lk.linkType === 'RF');
+        link.distance = GeoDistance.between({ lat: node.lat, lon: node.lon }, { lat: rnode.lat, lon: rnode.lon }).human_readable('customary');
         this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun, service: service }));
       }
     }));
