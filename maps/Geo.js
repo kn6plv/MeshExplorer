@@ -6,7 +6,7 @@ const Log = require('debug')('geo');
 const PROVIDER = 'openstreetmap';
 const RATE_LIMIT_PER_SEC = 1;
 
-const DB_NAME = `${__dirname}/revgeo.db`;
+const DB_NAME = `${__dirname}/../db/revgeo.db`;
 
 const geo = NodeGeocoder({
   provider: PROVIDER,
