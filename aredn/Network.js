@@ -1,10 +1,13 @@
 const fetch = require('node-fetch');
 const URL = require('url');
+const Nedb = require('nedb-promises');
 const Geo = require('../maps/Geo');
 const Radios = require('../radios/Radios');
 const Log = require('debug')('aredn');
 
+const DB_NAME = `${__dirname}/../db/network.db`;
 const NODE_AGE = 10 * 60 * 1000; // 10 minutes
+const FETCH_TIMEOUT = 5 * 1000; // 5 seconds
 
 class AREDNNetwork {
 
@@ -16,6 +19,8 @@ class AREDNNetwork {
     this.radios = {};
     this.ages = {};
     this.pending = {};
+    this.db = Nedb.create({ filename: DB_NAME, autoload: true });
+    this.db.persistence.setAutocompactionInterval(60 * 60 * 1000);
   }
 
   start() {
@@ -25,7 +30,7 @@ class AREDNNetwork {
   }
 
   async _getRoot() {
-    const req = await fetch('http://localnode.local.mesh/cgi-bin/sysinfo.json?link_info=1&hosts=1');
+    const req = await fetch('http://localnode.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&hosts=1');
     const json = await req.json();
 
     this.json = json;
@@ -49,7 +54,29 @@ class AREDNNetwork {
         Bus.emit('aredn.nodes.update');
       }
     }
-    if (await this._populateNodes(this.getAllNames())) {
+    const names = this.getAllNames();
+    const now = Date.now();
+    const rnames = [];
+    for (let i = 0; i < names.length; i++) {
+      const name = names[i];
+      const entry = await this.db.findOne({ _id: name });
+      if (!entry) {
+        rnames.push(name);
+      }
+      else {
+        try {
+          if (!entry.error) {
+            this.nodes[name] = JSON.parse(entry.node);
+            this.ages[name] = now;
+          }
+        }
+        catch (e) {
+          rnames.push(name);
+          Log(e);
+        }
+      }
+    }
+    if (await this._populateNodes(rnames)) {
       Bus.emit('aredn.nodes.update');
     }
   }
@@ -60,8 +87,13 @@ class AREDNNetwork {
     const update = async name => {
       try {
         Log('get:', name);
-        const req = await fetch(`http://${name}.local.mesh/cgi-bin/sysinfo.json?link_info=1&services_local=1`);
+        const timeout = new Promise(resolve => setTimeout(resolve, FETCH_TIMEOUT, 'timeout'));
+        const request = fetch(`http://${name}.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&services_local=1`);
         Log('   :', name);
+        const req = await Promise.race([ timeout, request ]);
+        if (req === 'timeout') {
+          throw new Error('fetch timeout');
+        }
         let valid = false;
         const json = await req.json();
         switch (json.api_version) {
@@ -124,15 +156,18 @@ class AREDNNetwork {
               }
             });
           }
-          if (!this.nodes[name] || JSON.stringify(json) != JSON.stringify(this.nodes[name])) {
+          const jsonstr = JSON.stringify(json);
+          if (!this.nodes[name] || jsonstr != JSON.stringify(this.nodes[name])) {
             this.nodes[name] = json;
             this.ages[name] = Date.now();
+            this.db.update({ _id: name }, { _id: name, error: false, node: jsonstr }, { upsert: true }).catch(e => Log(e));
             change = true;
             Bus.emit('aredn.node.update', { name: name });
           }
         }
       }
       catch (e) {
+        this.db.update({ _id: name }, { _id: name, error: e.code || 'UNKNOWN' }, { upsert: true }).catch(e => Log(e));
         Log(e);
       }
       finally {
@@ -284,7 +319,7 @@ class AREDNNetwork {
   }
 
   canonicalHostname(name) {
-    return name.replace(/\.local\.mesh$/i, '');
+    return name.replace(/\.local\.mesh$/i, '').replace(/^\./, '');
   }
 
 }
