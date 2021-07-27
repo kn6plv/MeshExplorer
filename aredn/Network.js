@@ -5,6 +5,7 @@ const Geo = require('../maps/Geo');
 const Radios = require('../radios/Radios');
 const Log = require('debug')('aredn');
 
+const IPV4_REGEXP = /^\d+\.\d+\.\d+\.\d+$/;
 const DB_NAME = `${__dirname}/../db/network.db`;
 const NODE_AGE = 10 * 60 * 1000; // 10 minutes
 const FETCH_TIMEOUT = 5 * 1000; // 5 seconds
@@ -260,7 +261,7 @@ class AREDNNetwork {
       for (let ip in rnode.link_info) {
         const link = rnode.link_info[ip];
         if (link.name === name && link.linkType === type) {
-          rlinks.push(Object.assign({ rname: rname, ip: ip }, link));
+          rlinks.push(Object.assign({ rname: rnode.node, ip: ip }, link));
           break;
         }
       }
@@ -273,7 +274,7 @@ class AREDNNetwork {
   }
 
   getNodeByNameImmediate(name) {
-    if (!name) {
+    if (!name || IPV4_REGEXP.exec(name)) {
       return null;
     }
     name = this.canonicalHostname(name);
@@ -285,7 +286,7 @@ class AREDNNetwork {
   }
 
   async getNodeByName(name) {
-    if (!name) {
+    if (!name || IPV4_REGEXP.exec(name)) {
       return null;
     }
     name = this.canonicalHostname(name);
