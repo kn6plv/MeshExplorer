@@ -32,7 +32,7 @@
   properties: [
     {
       type: `Directory`,
-      name: `/search/db`
+      name: `/app/db`
     },
     {
       type: `Port`,
