@@ -1,6 +1,7 @@
 FROM alpine:3.12
 
-COPY / /app
+COPY app /app
+COPY minkebox /minkebox
 
 RUN apk add nodejs npm ;\
     cd /app ; npm install --production ;\

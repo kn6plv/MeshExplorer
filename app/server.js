@@ -29,7 +29,7 @@ if (LogBus.enabled) {
 }
 
 // Web port (global)
-global.WEBPORT = parseInt(process.env.PORT || 8080);
+global.WEBPORT = parseInt(process.env.PORT || 8082);
 
 const App = Websockify(new Koa());
 App.on('error', err => console.error(err));

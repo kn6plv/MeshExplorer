@@ -1,0 +1,57 @@
+{
+  name: `AREDN Explorer`,
+  description: `AREDN mesh explorer`,
+  uuid: `97B061D1-0198-47E8-A387-1E7F6B34FFD9`,
+  image: `gitlab.home:5005/kn6plv/mesh-explorer`,
+  tags: [
+    `AREDN`
+  ],
+  actions: [
+    {
+      type: `Header`,
+      title: `Network`
+    },
+    {
+      type: `EditEnvironment`,
+      name: `PORT`,
+      description: `HTTP port`,
+      initValue: '8082'
+    },
+    {
+      type: `SelectNetwork`,
+      name: `primary`,
+      description: `Select which network the application will use.`
+    },
+    {
+      type: `EditEnvironmentAsCheckbox`,
+      name: `NAT`,
+      description: `Open NAT port to the service`,
+      initValue: false
+    }
+  ],
+  properties: [
+    {
+      type: `Directory`,
+      name: `/search/db`
+    },
+    {
+      type: `Port`,
+      name: `PORT/tcp`,
+      port: `{{PORT}}}}`,
+      protocol: `TCP`,
+      nat: `{{NAT}}`,
+      web: {
+        type: `newtab`,
+        path: ``
+      },
+      mdns: {
+        type: `_http._tcp`
+      }
+    },
+    {
+      type: `Network`,
+      name: `primary`,
+      value: `home`
+    }
+  ]
+}
