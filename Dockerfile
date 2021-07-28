@@ -5,6 +5,7 @@ COPY minkebox /minkebox
 
 RUN apk add nodejs npm ;\
     cd /app ; npm install --production ;\
+    chmod 777 server.js ;\
     apk del npm
 
 EXPOSE 8082/tcp
