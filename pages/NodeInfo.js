@@ -69,8 +69,8 @@ class NodeInfo extends Page {
     const rf = Network.getRFLinks(node);
     const revrf = Network.getReverseLinks(node, 'RF');
     revrf.forEach(rrf => {
-      if (!rf.find(lk => lk.name === rrf.rname)) {
-        rf.push({ name: rrf.rname });
+      if (!rf.find(lk => lk.canonicalName === rrf.revCanonicalName)) {
+        rf.push({ canonicalName: rrf.revCanonicalName });
       }
     });
     const service = Network.getServices(node);
@@ -79,14 +79,14 @@ class NodeInfo extends Page {
     this.html('node-map-radios', this.template.NodeMapRadios({ home: node }));
     const radios = [];
     await Promise.all(rf.map(async link => {
-      const rnode = await Network.getNodeByName(link.name);
+      const rnode = await Network.getNodeByName(link.canonicalName);
       if (name !== this.currentName) {
         return;
       }
       if (rnode) {
         radios.push(rnode);
         this.html('node-map-radios', this.template.NodeMapRadios({ home: node, radios: radios }));
-        link.rlink = Object.values(rnode.link_info).find(lk => lk.name === name && lk.linkType === 'RF');
+        link.rlink = Object.values(rnode.link_info).find(lk => lk.canonicalName === name && lk.linkType === 'RF');
         link.distance = GeoDistance.between({ lat: node.lat, lon: node.lon }, { lat: rnode.lat, lon: rnode.lon }).human_readable('customary');
         this.html('node-properties', this.template.NodeProperties({ node: node, dtd: dtd, rf: rf, tun: tun, service: service }));
       }
@@ -102,7 +102,7 @@ class NodeInfo extends Page {
       const rf = Network.getRFLinks(node);
       const start = Date.now();
       if (rf.length) {
-        await Network.refreshNodesByNames([ this.currentName ].concat(rf.map(link => link.name)));
+        await Network.refreshNodesByNames([ this.currentName ].concat(rf.map(link => link.canonicalName)));
         if (!this._running) {
           return;
         }

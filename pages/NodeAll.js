@@ -41,9 +41,9 @@ class NodeAll extends Page {
       if (!node.lat || !node.lon) {
         return false;
       }
-      const from = node.node;
+      const from = node.canonicalName;
       Network.getRFLinks(node).forEach(link => {
-        const to = link.name;
+        const to = link.canonicalName;
         const key = `${from}:${to}`;
         if (!rf[key] && !rf[`${to}:${from}`]) {
           const lnode = Network.getNodeByNameImmediate(to);
@@ -54,7 +54,7 @@ class NodeAll extends Page {
         }
       });
       Network.getTUNLinks(node).forEach(link => {
-        const to = link.name;
+        const to = link.canonicalName;
         const key = `${from}:${to}`;
         if (!tun[key] && !tun[`${to}:${from}`]) {
           const lnode = Network.getNodeByNameImmediate(to);

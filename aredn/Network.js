@@ -7,95 +7,61 @@ const Log = require('debug')('aredn');
 
 const IPV4_REGEXP = /^\d+\.\d+\.\d+\.\d+$/;
 const DB_NAME = `${__dirname}/../db/network.db`;
-const NODE_AGE = 10 * 60 * 1000; // 10 minutes
-const FETCH_TIMEOUT = 5 * 1000; // 5 seconds
+const FETCH_TIMEOUT = 10 * 1000; // 5 seconds
 
 class AREDNNetwork {
 
   constructor() {
-    this.hostname = 'localnode';
-    this.links = {};
-    this.names = {};
-    this.nodes = {};
-    this.radios = {};
-    this.ages = {};
-    this.pending = {};
+    this.nodeinfo = {};
     this.db = Nedb.create({ filename: DB_NAME, autoload: true });
     this.db.persistence.setAutocompactionInterval(60 * 60 * 1000);
   }
 
   start() {
-    this._getRoot().catch(e => {
-      Log(e);
-    });
+    this._getRoot().catch(e => Log(e));
   }
 
   async _getRoot() {
     const req = await fetch('http://localnode.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&hosts=1');
     const json = await req.json();
 
-    this.json = json;
-    this.hostname = json.node;
-    this.names = {};
-    json.hosts.forEach(host => {
-      this.names[host.name] = host;
+    this.canonicalName = this.canonicalHostname(json.node);
+    json.hosts.concat({ name: json.node }).forEach(host => {
+      this.nodeinfo[this._getKey(host.name)] = {
+        canonicalName: this.canonicalHostname(host.name),
+        givenName: host.name,
+        json: null,
+        error: null,
+        age: 0,
+        pending: null
+      };
     });
-    this.nodes[this.hostname] = json;
-    this.ages[this.hostname] = Date.now();
-    await this._updateRadios();
 
+    for (let key in this.nodeinfo) {
+      const entry = await this.db.findOne({ _id: key });
+      if (entry) {
+        this.nodeinfo[key].json = JSON.parse(entry.json);
+      }
+    }
+
+    await this._populateNodes([ this.canonicalName ]);
     Bus.emit('aredn.nodes.update');
-
-    await this._populate();
-  }
-
-  async _populate() {
-    if (await this._populateNodes(this.getLocalNames())) {
-      if (this._updateRadios()) {
-        Bus.emit('aredn.nodes.update');
-      }
-    }
-    const names = this.getAllNames();
-    const now = Date.now();
-    const rnames = [];
-    for (let i = 0; i < names.length; i++) {
-      const name = names[i];
-      const entry = await this.db.findOne({ _id: name });
-      if (!entry) {
-        rnames.push(name);
-      }
-      else {
-        try {
-          if (!entry.error) {
-            this.nodes[name] = JSON.parse(entry.node);
-            this.ages[name] = now;
-          }
-        }
-        catch (e) {
-          rnames.push(name);
-          Log(e);
-        }
-      }
-    }
-    if (await this._populateNodes(rnames)) {
-      Bus.emit('aredn.nodes.update');
-    }
   }
 
   async _populateNodes(names) {
     Log('populateNodes:', names);
-    let change = false;
-    const update = async name => {
+    let results = {};
+    const update = async info => {
       try {
-        Log('get:', name);
+        const canonicalName = info.canonicalName;
+        Log('get:', canonicalName);
         const timeout = new Promise(resolve => setTimeout(resolve, FETCH_TIMEOUT, 'timeout'));
-        const request = fetch(`http://${name}.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&services_local=1`);
-        Log('   :', name);
+        const request = fetch(`http://${canonicalName}.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&services_local=1`);
+        Log('   :', canonicalName);
         const req = await Promise.race([ timeout, request ]);
         if (req === 'timeout') {
-          throw new Error('fetch timeout');
+          throw new Error(`fetch timeout: ${canonicalName}`);
         }
-        let valid = false;
         const json = await req.json();
         switch (json.api_version) {
           case '1.6':
@@ -104,7 +70,6 @@ class AREDNNetwork {
               radio: Radios.lookup(json.node_details.model)
             };
             json.link_info = {};
-            valid = true;
             break;
           case '1.7':
           case '1.8':
@@ -113,118 +78,84 @@ class AREDNNetwork {
               radio: Radios.lookup(json.node_details.model)
             };
             for (let ip in json.link_info) {
-              json.link_info[ip].name = this.canonicalHostname(json.link_info[ip].hostname);
+              json.link_info[ip].canonicalName = this.canonicalHostname(json.link_info[ip].hostname);
             }
-            valid = true;
             break;
           default:
-            Log('Unknown API', json.api_version);
-            break;
+            throw new Error(`Unknown API: ${json.api_version}`);
         }
-        if (valid) {
-          json.icon = 'gray';
-          if (json.meshrf) {
-            if (json.meshrf.channel >= 3380 && json.meshrf.channel <= 3495) {
-              json.icon = 'blue';
+        json.icon = this._getIcon(json);
+        if (json.services_local) {
+          json.services_local.forEach(service => {
+            const url = new URL.URL(service.link);
+            if (url.port === '0') {
+              service.link = null;
             }
-            else if (json.meshrf.channel >= 131 && json.meshrf.channel <= 184) {
-              json.icon = 'orange';
+            else if (url.hostname.indexOf('.') === -1) {
+              url.hostname = `${url.hostname}.local.mesh`;
+              service.link = url.toString();
             }
-            else if (json.meshrf.freq) {
-              if (json.meshrf.freq.indexOf('2.') == 0) {
-                json.icon = 'purple';
-              }
-              else if (json.meshrf.freq.indexOf('5.') == 0) {
-                json.icon = 'orange';
-              }
-              else if (json.meshrf.freq.indexOf('3.') == 0) {
-                json.icon = 'blue';
-              }
-              else if (json.meshrf.freq.indexOf('900') == 0) {
-                json.icon = 'magenta';
-              }
-            }
-          }
-          if (json.services_local) {
-            json.services_local.forEach(service => {
-              const url = new URL.URL(service.link);
-              if (url.port === '0') {
-                service.link = null;
-              }
-              else if (url.hostname.indexOf('.') === -1) {
-                url.hostname = `${url.hostname}.local.mesh`;
-                service.link = url.toString();
-              }
-            });
-          }
-          const jsonstr = JSON.stringify(json);
-          if (!this.nodes[name] || jsonstr != JSON.stringify(this.nodes[name])) {
-            this.nodes[name] = json;
-            this.ages[name] = Date.now();
-            this.db.update({ _id: name }, { _id: name, error: false, node: jsonstr }, { upsert: true }).catch(e => Log(e));
-            change = true;
-            Bus.emit('aredn.node.update', { name: name });
-          }
+          });
+        }
+        const jsonstr = JSON.stringify(json);
+        info.error = null;
+        info.pending = null;
+        if (!info.json || jsonstr != JSON.stringify(info.json)) {
+          info.json = json;
+          Bus.emit('aredn.node.update', { name: canonicalName });
+          results[info.canonicalName] = 'changed';
+          const key = this._getKey(info.canonicalName);
+          this.db.update({ _id: key }, { _id: key, json: jsonstr }, { upsert: true }).catch(e => Log(e));
+        }
+        else {
+          results[info.canonicalName] = 'unchanged';
         }
       }
       catch (e) {
-        this.db.update({ _id: name }, { _id: name, error: e.code || 'UNKNOWN' }, { upsert: true }).catch(e => Log(e));
         Log(e);
-      }
-      finally {
-        delete this.pending[name];
+        info.error = e.code || 'ERROR';
+        info.pending = null;
+        results[info.canonicalName] = 'error';
       }
     };
     await Promise.all(names.map(name => {
-      let p = this.pending[name];
-      if (!p) {
-        p = update(name);
-        this.pending[name] = p;
+      const info = this.nodeinfo[this._getKey(name)] || { pending: true };
+      if (!info.pending) {
+        info.pending = update(info);
       }
-      return p;
+      return info.pending;
     }));
-    return change;
-  }
-
-  _updateRadios() {
-    Log('updateRadios:');
-    let changed = false;
-    const localNames = this.getLocalNames();
-    for (let i = 0; i < localNames.length; i++) {
-      const node = this.nodes[localNames[i]];
-      if (!node) {
-        continue;
-      }
-      for (let ip in node.link_info) {
-        const link = node.link_info[ip];
-        if (link.linkType !== 'RF') {
-          continue;
-        }
-        const radioName = this.canonicalHostname(link.hostname);
-        const entry = { name: radioName, ip: ip };
-        if (!this.radios[radioName] || JSON.stringify(this.radios[radioName]) != JSON.stringify(entry)) {
-          this.radios[radioName] = entry;
-          changed = true;
-        }
-      }
-    }
-    return changed;
+    return results;
   }
 
   getLocalNames() {
-    return ([ this.hostname ].concat(this.getNodeTypeLinks(this.json, 'DTD').map(link => this.canonicalHostname(link.hostname)))).sort((a,b) => a.localeCompare(b));
+    return [ this.canonicalName ].concat(this.getDTDLinks(this.getNodeByNameImmediate(this.canonicalName)).map(link => link.canonicalName));
   }
 
   getRFNames() {
-    return Object.keys(this.radios).sort((a,b) => a.localeCompare(b));
+    const names = {};
+    this.getLocalNames().forEach(name => {
+      const node = this.getNodeByNameImmediate(name);
+      if (node) {
+        this.getRFLinks(node).forEach(link => names[this._getKey(link.canonicalName)] = link.canonicalName);
+      }
+    });
+    return Object.values(names).sort((a,b) => a.localeCompare(b));
   }
 
   getTUNNames() {
-    return this.getNodeTypeLinks(this.json, 'TUN').map(link => this.canonicalHostname(link.hostname)).sort((a,b) => a.localeCompare(b));
+    const names = {};
+    this.getLocalNames().forEach(name => {
+      const node = this.getNodeByNameImmediate(name);
+      if (node) {
+        this.getTUNLinks(node).forEach(link => names[this._getKey(link.canonicalName)] = link.canonicalName);
+      }
+    });
+    return Object.values(names).sort((a,b) => a.localeCompare(b));
   }
 
   getAllNames() {
-    return Object.keys(this.names).sort((a,b) => a.localeCompare(b));
+    return Object.values(this.nodeinfo).map(info => info.canonicalName).sort((a,b) => a.localeCompare(b));
   }
 
   getNodeTypeLinks(node, type) {
@@ -232,41 +163,38 @@ class AREDNNetwork {
     for (let ip in node.link_info) {
       const link = node.link_info[ip];
       if (link.linkType == type) {
-        links.push(Object.assign({ ip: ip }, link));
+        links.push(Object.assign({}, link));
       }
     }
-    return links;
+    return links.sort((a,b) => a.canonicalName.localeCompare(b.canonicalName));
   }
 
   getDTDLinks(node) {
-    return this.getNodeTypeLinks(node, 'DTD').sort((a,b) => a.name.localeCompare(b.name));
+    return this.getNodeTypeLinks(node, 'DTD');
   }
 
   getRFLinks(node) {
-    return this.getNodeTypeLinks(node, 'RF').sort((a,b) => a.name.localeCompare(b.name));
+    return this.getNodeTypeLinks(node, 'RF');
   }
 
   getTUNLinks(node) {
-    return this.getNodeTypeLinks(node, 'TUN').sort((a,b) => a.name.localeCompare(b.name));
+    return this.getNodeTypeLinks(node, 'TUN');
   }
 
   getReverseLinks(node, type) {
-    const name = node.node;
-    const rlinks = [];
-    for (let rname in this.nodes) {
-      const rnode = this.nodes[rname];
-      if (!rnode || !rnode.link_info) {
-        continue;
+    const canonicalName = this.nodeinfo[this._getKey(node.node)].canonicalName;
+    const revlinks = [];
+    Object.values(this.nodeinfo).forEach(info => {
+      if (!info.json || !info.json.link_info) {
+        return;
       }
-      for (let ip in rnode.link_info) {
-        const link = rnode.link_info[ip];
-        if (link.name === name && link.linkType === type) {
-          rlinks.push(Object.assign({ rname: rnode.node, ip: ip }, link));
-          break;
+      Object.values(info.json.link_info).forEach(link => {
+        if (link.canonicalName === canonicalName && link.linkType === type) {
+          revlinks.push(Object.assign({ revCanonicalName: info.canonicalName }, link));
         }
-      }
-    }
-    return rlinks;
+      });
+    });
+    return revlinks;
   }
 
   getServices(node) {
@@ -277,40 +205,39 @@ class AREDNNetwork {
     if (!name || IPV4_REGEXP.exec(name)) {
       return null;
     }
-    name = this.canonicalHostname(name);
-    const node = this.nodes[name];
-    if (!node) {
-      this._populateNodes([ name ]).catch(e => Log(e));
+    const info = this.nodeinfo[this._getKey(name)];
+    if (!info) {
+      return null;
     }
-    return node;
+    if (!info.json) {
+      this.refreshNodesByNames([ name ]);
+    }
+    return info.json;
   }
 
   async getNodeByName(name) {
     if (!name || IPV4_REGEXP.exec(name)) {
       return null;
     }
-    name = this.canonicalHostname(name);
-    if (!this.nodes[name]) {
+    const info = this.nodeinfo[this._getKey(name)];
+    if (!info) {
+      return null;
+    }
+    if (!info.json) {
       await this._populateNodes([ name ]);
     }
-    else {
-      if (this.ages[name] + NODE_AGE < Date.now()) {
-        setTimeout(async () => {
-          await this.refreshNodesByNames([ name ]);
-        }, 0);
-      }
-    }
-    return this.nodes[name];
+    return info.json;
   }
 
   getAllAvailableNodes() {
-    return Object.values(this.nodes).filter(node => node);
+    return Object.values(this.nodeinfo).filter(info => info.json).map(info => info.json);
   }
 
   async refreshNodesByNames(names) {
     Log('refreshNodesByNames:', names);
     try {
-      if (await this._populateNodes(names)) {
+      const results = await this._populateNodes(names);
+      if (Object.values(results).find(result => result === 'changed')) {
         Bus.emit('aredn.nodes.update');
       }
     }
@@ -321,6 +248,37 @@ class AREDNNetwork {
 
   canonicalHostname(name) {
     return name.replace(/\.local\.mesh$/i, '').replace(/^\./, '');
+  }
+
+  _getKey(name) {
+    return this.canonicalHostname(name).toUpperCase();
+  }
+
+  _getIcon(json) {
+    let icon = 'gray';
+    if (json && json.meshrf) {
+      if (json.meshrf.channel >= 3380 && json.meshrf.channel <= 3495) {
+        icon = 'blue';
+      }
+      else if (json.meshrf.channel >= 131 && json.meshrf.channel <= 184) {
+        icon = 'orange';
+      }
+      else if (json.meshrf.freq) {
+        if (json.meshrf.freq.indexOf('2.') == 0) {
+          icon = 'purple';
+        }
+        else if (json.meshrf.freq.indexOf('5.') == 0) {
+          icon = 'orange';
+        }
+        else if (json.meshrf.freq.indexOf('3.') == 0) {
+          icon = 'blue';
+        }
+        else if (json.meshrf.freq.indexOf('900') == 0) {
+          icon = 'magenta';
+        }
+      }
+    }
+    return icon;
   }
 
 }
