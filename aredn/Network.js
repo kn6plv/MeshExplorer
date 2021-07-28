@@ -134,12 +134,16 @@ class AREDNNetwork {
 
   getRFNames() {
     const names = {};
-    this.getLocalNames().forEach(name => {
+    const localNames = this.getLocalNames();
+    localNames.forEach(name => {
       const node = this.getNodeByNameImmediate(name);
       if (node) {
         this.getRFLinks(node).forEach(link => names[this._getKey(link.canonicalName)] = link.canonicalName);
       }
     });
+    localNames.forEach(name => {
+      delete names[this._getKey(name)];
+    })
     return Object.values(names).sort((a,b) => a.localeCompare(b));
   }
 
