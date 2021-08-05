@@ -35,7 +35,7 @@ class NodeInfo extends Page {
       this.currentName = tab;
       this._setupProps();
       await this._updateProps();
-      this._startRefresh();
+      this._startRefresh(true);
     }
   }
 
@@ -100,6 +100,12 @@ class NodeInfo extends Page {
         return;
       }
       const rf = Network.getRFLinks(node);
+      const revrf = Network.getReverseLinks(node, 'RF');
+      revrf.forEach(rrf => {
+        if (!rf.find(lk => lk.canonicalName === rrf.revCanonicalName)) {
+          rf.push({ canonicalName: rrf.revCanonicalName });
+        }
+      });
       const start = Date.now();
       if (rf.length) {
         await Network.refreshNodesByNames([ this.currentName ].concat(rf.map(link => link.canonicalName)));
