@@ -5,7 +5,7 @@
     <tr class="description"><td colspan="2">{{node.node_details.description}}</td></tr>
     {{/if}}
     {{#if (and node.lon node.lat)}}
-    <tr class="location"><td>Location</td><td>{{node.lon}}, {{node.lat}}</td></tr>
+    <tr class="location"><td>Location</td><td>{{node.lat}}, {{node.lon}}</td></tr>
     {{/if}}
     {{#if node.grid_square}}
     <tr><td>Grid Square</td><td>{{node.grid_square}}</td></tr>
