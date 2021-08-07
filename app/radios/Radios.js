@@ -43,6 +43,11 @@ const radios = {
     antennaBeam: 7,
     txPower: 25
   },
+  'mikrotik routerboard rblhg-5hpnd': {
+    antennaGain: 24.5
+    antennaBeam: 7,
+    txPower: 28
+  },
   'mikrotik routerboard rb952ui-5ac2nd': {
     antennaGain: 2,
     txPower: 23
