@@ -164,10 +164,12 @@ class AREDNNetwork {
 
   getNodeTypeLinks(node, type) {
     const links = [];
-    for (let ip in node.link_info) {
-      const link = node.link_info[ip];
-      if (link.linkType == type) {
-        links.push(Object.assign({}, link));
+    if (node.link_info) {
+      for (let ip in node.link_info) {
+        const link = node.link_info[ip];
+        if (link.linkType == type) {
+          links.push(Object.assign({}, link));
+        }
       }
     }
     return links.sort((a,b) => a.canonicalName.localeCompare(b.canonicalName));

@@ -26,6 +26,9 @@ const radios = {
     txPower: 23
   },
   'ubiquiti nanostation m': {
+    antennaGain: 25,
+    antennaBeam: 6,
+    txPower: 27,
   },
   'ubiquiti nanostation m (xw)': {
     antennaGain: 16,
