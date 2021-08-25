@@ -9,6 +9,8 @@ const IPV4_REGEXP = /^\d+\.\d+\.\d+\.\d+$/;
 const DB_NAME = `${__dirname}/../db/network.db`;
 const FETCH_TIMEOUT = 10 * 1000; // 5 seconds
 
+const ROOT = 'KN6PLV-BrkOxfLA-Omni';
+
 class AREDNNetwork {
 
   constructor() {
@@ -22,7 +24,7 @@ class AREDNNetwork {
   }
 
   async _getRoot() {
-    const req = await fetch('http://localnode.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&hosts=1');
+    const req = await fetch(`http://${ROOT}.local.mesh:8080/cgi-bin/sysinfo.json?link_info=1&hosts=1`);
     const json = await req.json();
 
     this.canonicalName = this.canonicalHostname(json.node);
