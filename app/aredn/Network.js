@@ -164,7 +164,7 @@ class AREDNNetwork {
 
   getNodeTypeLinks(node, type) {
     const links = [];
-    if (node.link_info) {
+    if (node) {
       for (let ip in node.link_info) {
         const link = node.link_info[ip];
         if (link.linkType == type) {
